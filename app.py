@@ -29,16 +29,41 @@ system_data = {
 }
 
 
+# =====================================================
+# FRONTEND
+# =====================================================
+
 @app.route("/")
 def home():
-    return send_from_directory("../frontend", "index.html")
+    return send_from_directory(".", "index.html")
+
+
+@app.route("/style.css")
+def style():
+    return send_from_directory(".", "style.css")
+
+
+@app.route("/app.js")
+def javascript():
+    return send_from_directory(".", "app.js")
+
+
+# =====================================================
+# SYSTEM STATUS
+# =====================================================
+
 @app.route("/api/status")
 def get_status():
     return jsonify(system_data)
 
 
+# =====================================================
+# SOIL
+# =====================================================
+
 @app.route("/api/soil", methods=["POST"])
 def set_soil():
+
     data = request.get_json() or {}
 
     system_data["soil_moisture"] = data.get(
@@ -54,8 +79,13 @@ def set_soil():
     return jsonify(system_data)
 
 
+# =====================================================
+# WATER
+# =====================================================
+
 @app.route("/api/water", methods=["POST"])
 def set_water():
+
     data = request.get_json() or {}
 
     system_data["water_level"] = data.get(
@@ -64,15 +94,24 @@ def set_water():
     )
 
     if system_data["water_level"] <= 20:
-        system_data["alert"] = "Warning: Water tank is very low."
+        system_data["alert"] = (
+            "Warning: Water tank is very low."
+        )
     else:
-        system_data["alert"] = "System operating normally."
+        system_data["alert"] = (
+            "System operating normally."
+        )
 
     return jsonify(system_data)
 
 
+# =====================================================
+# TEMPERATURE
+# =====================================================
+
 @app.route("/api/temperature", methods=["POST"])
 def set_temperature():
+
     data = request.get_json() or {}
 
     system_data["temperature"] = data.get(
@@ -81,27 +120,49 @@ def set_temperature():
     )
 
     if system_data["temperature"] >= 35:
-        system_data["alert"] = "Warning: High temperature detected."
+        system_data["alert"] = (
+            "Warning: High temperature detected."
+        )
     else:
-        system_data["alert"] = "System operating normally."
+        system_data["alert"] = (
+            "System operating normally."
+        )
 
     return jsonify(system_data)
 
 
+# =====================================================
+# PUMP
+# =====================================================
+
 @app.route("/api/pump", methods=["POST"])
 def control_pump():
+
     data = request.get_json() or {}
 
     status = data.get("status", "off")
 
     if status == "on":
+
         system_data["pump"] = True
-        system_data["robot_task"] = "Water pump is running and water is flowing."
+
+        system_data["robot_task"] = (
+            "Water pump is running and water is flowing."
+        )
+
         system_data["alert"] = "Water pump is ON."
+
     else:
+
         system_data["pump"] = False
-        system_data["robot_task"] = "Water pump is OFF."
-        system_data["alert"] = "Water pump has been turned OFF."
+
+        system_data["robot_task"] = (
+            "Water pump is OFF."
+        )
+
+        system_data["alert"] = (
+            "Water pump has been turned OFF."
+        )
 
     return jsonify({
         "success": True,
@@ -112,51 +173,90 @@ def control_pump():
     })
 
 
+# =====================================================
+# AUTOMATIC IRRIGATION
+# =====================================================
+
 @app.route("/api/automatic", methods=["POST"])
 def automatic_irrigation():
+
     data = request.get_json() or {}
 
-    enabled = bool(data.get("enabled", False))
+    enabled = bool(
+        data.get("enabled", False)
+    )
 
     system_data["automatic_irrigation"] = enabled
 
     if enabled:
+
         system_data["robot_working"] = True
         system_data["robot_status"] = "WORKING"
         system_data["pump"] = True
-        system_data["robot_task"] = "Automatic irrigation is working."
-        system_data["alert"] = "Automatic irrigation is active."
+
+        system_data["robot_task"] = (
+            "Automatic irrigation is working."
+        )
+
+        system_data["alert"] = (
+            "Automatic irrigation is active."
+        )
+
     else:
+
         system_data["robot_working"] = False
         system_data["robot_status"] = "STOPPED"
         system_data["pump"] = False
-        system_data["robot_task"] = "Automatic irrigation stopped."
-        system_data["alert"] = "Automatic irrigation stopped."
+
+        system_data["robot_task"] = (
+            "Automatic irrigation stopped."
+        )
+
+        system_data["alert"] = (
+            "Automatic irrigation stopped."
+        )
 
     return jsonify({
         "success": True,
-        "automatic_irrigation": system_data["automatic_irrigation"],
-        "pump": system_data["pump"],
-        "robot_working": system_data["robot_working"],
-        "robot_status": system_data["robot_status"],
-        "robot_task": system_data["robot_task"],
-        "alert": system_data["alert"]
+        "automatic_irrigation":
+            system_data["automatic_irrigation"],
+        "pump":
+            system_data["pump"],
+        "robot_working":
+            system_data["robot_working"],
+        "robot_status":
+            system_data["robot_status"],
+        "robot_task":
+            system_data["robot_task"],
+        "alert":
+            system_data["alert"]
     })
 
 
+# =====================================================
+# SELECT ROBOT
+# =====================================================
+
 @app.route("/api/robot/select", methods=["POST"])
 def select_robot():
+
     data = request.get_json() or {}
 
     try:
-        robot_number = int(data.get("robot"))
+
+        robot_number = int(
+            data.get("robot")
+        )
+
     except (TypeError, ValueError):
+
         return jsonify({
             "success": False,
             "message": "Invalid robot number."
         }), 400
 
     if robot_number not in robots:
+
         return jsonify({
             "success": False,
             "message": "Invalid robot."
@@ -165,8 +265,10 @@ def select_robot():
     system_data["selected_robot"] = robot_number
     system_data["robot_working"] = False
     system_data["robot_status"] = "READY"
+
     system_data["robot_task"] = (
-        robots[robot_number] + " is ready to work."
+        robots[robot_number] +
+        " is ready to work."
     )
 
     return jsonify({
@@ -174,23 +276,36 @@ def select_robot():
         "robot": robots[robot_number],
         "robot_status": "READY",
         "robot_working": False,
-        "robot_task": system_data["robot_task"]
+        "robot_task":
+            system_data["robot_task"]
     })
 
 
+# =====================================================
+# ROBOT WORK
+# =====================================================
+
 @app.route("/api/robot/work", methods=["POST"])
 def robot_work():
+
     data = request.get_json() or {}
 
-    working = bool(data.get("working", False))
+    working = bool(
+        data.get("working", False)
+    )
 
-    selected_robot = system_data["selected_robot"]
+    selected_robot = (
+        system_data["selected_robot"]
+    )
 
     if selected_robot is None:
+
         return jsonify({
             "success": False,
-            "message": "Please select a robot first.",
-            "robot_task": "No robot selected."
+            "message":
+                "Please select a robot first.",
+            "robot_task":
+                "No robot selected."
         }), 400
 
     robot_name = robots[selected_robot]
@@ -201,40 +316,69 @@ def robot_work():
         system_data["robot_status"] = "WORKING"
 
         if selected_robot == 1:
+
             task = "Monitoring soil moisture."
+
         elif selected_robot == 2:
+
             task = "Irrigating crops."
+
         elif selected_robot == 3:
+
             task = "Monitoring crops."
+
         elif selected_robot == 4:
+
             task = "Applying fertilizer."
+
         else:
+
             task = "Transporting farm materials."
 
         system_data["robot_task"] = task
-        system_data["alert"] = robot_name + " is working."
+
+        system_data["alert"] = (
+            robot_name + " is working."
+        )
 
         if selected_robot == 2:
+
             system_data["pump"] = True
 
     else:
 
         system_data["robot_working"] = False
         system_data["robot_status"] = "PAUSED"
-        system_data["robot_task"] = robot_name + " work paused."
-        system_data["alert"] = robot_name + " has been paused."
+
+        system_data["robot_task"] = (
+            robot_name + " work paused."
+        )
+
+        system_data["alert"] = (
+            robot_name + " has been paused."
+        )
+
         system_data["pump"] = False
 
     return jsonify({
         "success": True,
         "robot": robot_name,
-        "robot_working": system_data["robot_working"],
-        "robot_status": system_data["robot_status"],
-        "robot_task": system_data["robot_task"],
-        "pump": system_data["pump"],
-        "alert": system_data["alert"]
+        "robot_working":
+            system_data["robot_working"],
+        "robot_status":
+            system_data["robot_status"],
+        "robot_task":
+            system_data["robot_task"],
+        "pump":
+            system_data["pump"],
+        "alert":
+            system_data["alert"]
     })
 
+
+# =====================================================
+# STOP ROBOT
+# =====================================================
 
 @app.route("/api/robot/stop", methods=["POST"])
 def stop_robot():
@@ -242,18 +386,30 @@ def stop_robot():
     system_data["robot_working"] = False
     system_data["robot_status"] = "STOPPED"
     system_data["pump"] = False
-    system_data["robot_task"] = "Robot stopped immediately."
-    system_data["alert"] = "ALERT: Robot stopped immediately."
+
+    system_data["robot_task"] = (
+        "Robot stopped immediately."
+    )
+
+    system_data["alert"] = (
+        "ALERT: Robot stopped immediately."
+    )
 
     return jsonify({
         "success": True,
         "robot_working": False,
         "robot_status": "STOPPED",
-        "robot_task": "Robot stopped immediately.",
+        "robot_task":
+            "Robot stopped immediately.",
         "pump": False,
-        "alert": system_data["alert"]
+        "alert":
+            system_data["alert"]
     })
 
+
+# =====================================================
+# ALERTS
+# =====================================================
 
 @app.route("/api/alerts")
 def get_alerts():
@@ -261,21 +417,37 @@ def get_alerts():
     alerts = []
 
     if system_data["water_level"] <= 20:
-        alerts.append("Warning: Water tank is very low.")
+
+        alerts.append(
+            "Warning: Water tank is very low."
+        )
 
     if system_data["battery"] <= 20:
-        alerts.append("Warning: Battery is very low.")
+
+        alerts.append(
+            "Warning: Battery is very low."
+        )
 
     if system_data["temperature"] >= 35:
-        alerts.append("Warning: High temperature detected.")
+
+        alerts.append(
+            "Warning: High temperature detected."
+        )
 
     if not alerts:
-        alerts.append(system_data["alert"])
+
+        alerts.append(
+            system_data["alert"]
+        )
 
     return jsonify({
         "alerts": alerts
     })
 
+
+# =====================================================
+# START SERVER
+# =====================================================
 
 if __name__ == "__main__":
 
