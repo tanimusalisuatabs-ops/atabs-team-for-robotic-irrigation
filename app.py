@@ -31,11 +31,53 @@ system_data = {
 
 @app.route("/")
 def home():
-    return jsonify({
-        "message": "Smart Irrigation Robot Backend is running!",
-        "status": "online"
-    })
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Smart Irrigation Robot</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #f2f5f3;
+                text-align: center;
+                padding-top: 100px;
+            }
 
+            h1 {
+                color: #176b3a;
+                font-size: 40px;
+            }
+
+            p {
+                font-size: 20px;
+                color: #333;
+            }
+
+            .status {
+                display: inline-block;
+                background: #176b3a;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <h1>Smart Irrigation Robot</h1>
+
+        <p>Farm Monitoring and Automatic Irrigation System</p>
+
+        <div class="status">
+            Backend is Running Successfully
+        </div>
+
+    </body>
+    </html>
+    """
 
 @app.route("/api/status")
 def get_status():
